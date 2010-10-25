@@ -132,7 +132,7 @@ bool ExpenseSharing::open(const QUrl& url) {
         return false;
     bool ok = false;
     if (url.scheme() != "file") {
-        if (m_manager->networkAccessible() != QNetworkAccessManager::Accessible) {
+        if (m_manager->networkAccessible() == QNetworkAccessManager::NotAccessible) {
             QMessageBox::warning(this, tr("Error"), tr("Network is down."),
                                  QMessageBox::Ok);
             return false;
@@ -183,7 +183,7 @@ void ExpenseSharing::on_actionSave_triggered() {
             m_group->save(m_url.toLocalFile());
         } else {
             // try to write to distant storage
-            if (m_manager->networkAccessible() != QNetworkAccessManager::Accessible) {
+            if (m_manager->networkAccessible() == QNetworkAccessManager::NotAccessible) {
                 QMessageBox::warning(this, tr("Error"), tr("Network is down."),
                                      QMessageBox::Ok);
                 return;
