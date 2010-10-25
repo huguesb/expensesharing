@@ -93,10 +93,17 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menuOpenRecent">
+     <property name="title">
+      <string>Open recent</string>
+     </property>
+     <addaction name="actionClearRecent"/>
+     <addaction name="separator"/>
+    </widget>
     <addaction name="actionOpen"/>
+    <addaction name="menuOpenRecent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
-    <addaction name="actionClose"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -166,6 +173,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionClearRecent">
+   <property name="text">
+    <string>&amp;Clear</string>
    </property>
   </action>
  </widget>

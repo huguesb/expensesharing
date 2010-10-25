@@ -35,7 +35,7 @@ QModelIndex ExpenseModel::parent(const QModelIndex &child) const {
 }
 
 int ExpenseModel::rowCount(const QModelIndex &parent) const {
-    return parent.isValid() ? 0 : m_group->persons().count();
+    return parent.isValid() ? 0 : m_group->expenses().count();
 }
 
 int ExpenseModel::columnCount(const QModelIndex &parent) const {

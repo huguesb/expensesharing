@@ -14,13 +14,19 @@ public:
     explicit ExpenseSharing(QWidget *parent = 0);
     ~ExpenseSharing();
 
+public slots:
+    bool open(const QString& filename);
+
 private slots:
     void on_actionOpen_triggered();
+    void on_actionClearRecent_triggered();
     void on_actionSave_triggered();
     void on_actionSaveAs_triggered();
     void on_actionAdd_triggered();
     void on_actionHelp_triggered();
     void on_actionAbout_triggered();
+
+    void openRecentTriggered();
 
     void summaryChanged();
     void currentPersonChanged(const QModelIndex& idx);
@@ -28,6 +34,9 @@ private slots:
     void on_tvExpenseDetails_customContextMenuRequested(const QPoint& pos);
 
 private:
+    void updateRecentMenu();
+    void setCurrentFileName(const QString& filename);
+
     QString m_fileName;
     ExpenseGroup *m_group;
 };

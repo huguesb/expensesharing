@@ -32,3 +32,6 @@ HEADERS  += expensesharing.h \
 FORMS    += expensesharing.ui \
     newpersondialog.ui \
     newexpensedialog.ui
+
+OTHER_FILES += \
+    README.txt

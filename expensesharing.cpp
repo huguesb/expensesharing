@@ -11,6 +11,7 @@
 
 #include <cfloat>
 #include <QDebug>
+#include <QSettings>
 #include <QFileDialog>
 #include <QMessageBox>
 
@@ -33,10 +34,60 @@ ExpenseSharing::ExpenseSharing(QWidget *parent)
     connect(m_group, SIGNAL( summaryChanged() ),
             this   , SLOT  ( summaryChanged() ));
 
+    updateRecentMenu();
     summaryChanged();
 }
 
 ExpenseSharing::~ExpenseSharing() {
+}
+
+void ExpenseSharing::setCurrentFileName(const QString& filename) {
+    m_fileName = filename;
+
+    QSettings s;
+    QStringList l = s.value("recentFiles", QStringList()).toStringList();
+    int maxEntries = s.value("maxRecentFileEntries", 10).toUInt();
+    l.removeAll(filename);
+    l.prepend(filename);
+    while (l.count() > maxEntries)
+        l.removeLast();
+    s.setValue("recentFiles", l);
+    updateRecentMenu();
+}
+
+void ExpenseSharing::updateRecentMenu() {
+    QList<QAction*> l = menuOpenRecent->actions();
+    foreach (QAction *a, l) {
+        if (a != actionClearRecent && !a->isSeparator()) {
+            menuOpenRecent->removeAction(a);
+        }
+    }
+    QStringList files = QSettings().value("recentFiles").toStringList();
+    for (int n = 0; n < files.count(); ++n) {
+        QString fn = files.at(n);
+        QString prefix;
+        if (n < 10)
+            prefix = QString("&") + QString::number(n) + " ";
+        menuOpenRecent->addAction(prefix + fn, this,
+                                  SLOT( openRecentTriggered() ))
+            ->setData(fn);
+    }
+}
+
+void ExpenseSharing::openRecentTriggered() {
+    QAction *a = qobject_cast<QAction*>(sender());
+    if (a)
+        open(a->data().toString());
+}
+
+bool ExpenseSharing::open(const QString& filename) {
+    bool ok = false;
+    if (QFile::exists(filename)) {
+        ok = m_group->load(filename);
+        tvExpenseDetails->resizeColumnsToContents();
+        setCurrentFileName(filename);
+    }
+    return ok;
 }
 
 void ExpenseSharing::on_actionOpen_triggered() {
@@ -45,11 +96,12 @@ void ExpenseSharing::on_actionOpen_triggered() {
                                  tr("Open expense log..."),
                                  QString(),
                                  "XSEM files (*.xsem);;All files (*)");
-    if (fn.count()) {
-        m_group->load(fn);
-        tvExpenseDetails->resizeColumnsToContents();
-        m_fileName = fn;
-    }
+    open(fn);
+}
+
+void ExpenseSharing::on_actionClearRecent_triggered() {
+    QSettings().remove("recentFiles");
+    updateRecentMenu();
 }
 
 void ExpenseSharing::on_actionSave_triggered() {
@@ -63,11 +115,11 @@ void ExpenseSharing::on_actionSaveAs_triggered() {
     QString fn =
     QFileDialog::getSaveFileName(this,
                                  tr("Save expense log..."),
-                                 QString(),
+                                 m_fileName,
                                  "XSEM files (*.xsem);;All files (*)");
     if (fn.count()) {
         m_group->save(fn);
-        m_fileName = fn;
+        setCurrentFileName(fn);
     }
 }
 
