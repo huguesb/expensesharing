@@ -34,4 +34,5 @@ FORMS    += expensesharing.ui \
     newexpensedialog.ui
 
 OTHER_FILES += \
-    README.txt
+    README.txt \
+    GPL.txt

@@ -1,6 +1,8 @@
 ExpenseSharing
 --------------
-Copyright (c) 2010 Hugues Bruant. All rights reserved.
+Copyright (c) 2010 Hugues Bruant <hugues.bruant@gmail.com>
+All rights reserved.
+Licensed under GNU General Pulic License version 3.
 
 
 What is it ?
