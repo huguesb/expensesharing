@@ -8,6 +8,8 @@
 class Person;
 class Expense;
 
+class QIODevice;
+
 class ExpenseGroup : public QObject
 {
 Q_OBJECT
@@ -47,6 +49,9 @@ public:
     void computeSummary(Summary *summary) const;
 
 public slots:
+    bool load(QIODevice *device);
+    bool save(QIODevice *device);
+
     bool load(const QString& filename);
     bool save(const QString& filename);
 

@@ -105,17 +105,11 @@ const ExpenseGroup::Summary& ExpenseGroup::summary() const {
     return m_summary;
 }
 
-bool ExpenseGroup::load(const QString &filename) {
-    QFile input(filename);
-    if (!input.open(QFile::ReadOnly | QFile::Text)) {
-        qWarning("Unable to open %s for reading.", qPrintable(filename));
-        return false;
-    }
-
+bool ExpenseGroup::load(QIODevice *device) {
     QList<Person*> persons;
     QList<Expense*> expenses;
     QHash<int, Person*> personIds;
-    QXmlStreamReader xml(&input);
+    QXmlStreamReader xml(device);
     if (xml.readNextStartElement() && xml.name() == "xsem" && xml.attributes().value("version") == "1.0") {
         m_name = xml.attributes().value("name").toString();
         while (xml.readNextStartElement()) {
@@ -251,13 +245,8 @@ bool ExpenseGroup::load(const QString &filename) {
     return true;
 }
 
-bool ExpenseGroup::save(const QString &filename) {
-    QFile output(filename);
-    if (!output.open(QFile::WriteOnly | QFile::Text)) {
-        qWarning("Unable to open %s for writing.", qPrintable(filename));
-        return false;
-    }
-    QXmlStreamWriter xml(&output);
+bool ExpenseGroup::save(QIODevice *device) {
+    QXmlStreamWriter xml(device);
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
     xml.writeDTD("<!DOCTYPE xsem>");
@@ -289,6 +278,24 @@ bool ExpenseGroup::save(const QString &filename) {
     xml.writeEndElement();
     xml.writeEndDocument();
     return true;
+}
+
+bool ExpenseGroup::load(const QString &filename) {
+    QFile input(filename);
+    if (!input.open(QFile::ReadOnly | QFile::Text)) {
+        qWarning("Unable to open %s for reading.", qPrintable(filename));
+        return false;
+    }
+    return load(&input);
+}
+
+bool ExpenseGroup::save(const QString &filename) {
+    QFile output(filename);
+    if (!output.open(QFile::WriteOnly | QFile::Text)) {
+        qWarning("Unable to open %s for writing.", qPrintable(filename));
+        return false;
+    }
+    return save(&output);
 }
 
 double ExpenseGroup::expense(Person *person) const {

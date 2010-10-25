@@ -1,10 +1,14 @@
 #ifndef EXPENSESHARING_H
 #define EXPENSESHARING_H
 
+#include <QUrl>
 #include <QMainWindow>
+
 #include "ui_expensesharing.h"
 
 class ExpenseGroup;
+
+class QNetworkAccessManager;
 
 class ExpenseSharing : public QMainWindow, private Ui::ExpenseSharing
 {
@@ -15,10 +19,12 @@ public:
     ~ExpenseSharing();
 
 public slots:
+    bool open(const QUrl& url);
     bool open(const QString& filename);
 
 private slots:
     void on_actionOpen_triggered();
+    void on_actionOpenUrl_triggered();
     void on_actionClearRecent_triggered();
     void on_actionSave_triggered();
     void on_actionSaveAs_triggered();
@@ -35,10 +41,12 @@ private slots:
 
 private:
     void updateRecentMenu();
-    void setCurrentFileName(const QString& filename);
+    void setCurrentFileName(const QUrl& url);
 
-    QString m_fileName;
+    QUrl m_url;
     ExpenseGroup *m_group;
+
+    QNetworkAccessManager *m_manager;
 };
 
 #endif // EXPENSESHARING_H

@@ -39,3 +39,8 @@ and expenses.
 
 TODO
 ----
+ * display of p2p debts
+ * expense log diff
+ * some form of networked / shared edit
+ * use more precise math?
+ * interface polish

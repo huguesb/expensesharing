@@ -11,12 +11,59 @@
 
 #include <cfloat>
 #include <QDebug>
+#include <QBuffer>
 #include <QSettings>
-#include <QFileDialog>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QProgressDialog>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QNetworkAccessManager>
+
+class NetworkWaiter : public QProgressDialog {
+    Q_OBJECT
+public:
+    NetworkWaiter(QNetworkReply *reply, QWidget *p = 0)
+        : QProgressDialog(tr("Transferring..."),
+                          tr("Abort transfer"),
+                          0, -1, p)
+        , m_reply(reply) {
+        setAutoClose(true);
+        setAutoReset(true);
+        connect(reply,
+                SIGNAL( uploadProgress(qint64, qint64) ),
+                SLOT  ( uploadProgress(qint64, qint64) ));
+        connect(reply,
+                SIGNAL( downloadProgress(qint64, qint64) ),
+                SLOT  ( downloadProgress(qint64, qint64) ));
+    }
+
+public slots:
+    bool wait() {
+        exec();
+        return wasCanceled();
+    }
+
+private slots:
+    void downloadProgress(qint64 received, qint64 total) {
+        setMaximum(total);
+        setValue(received);
+    }
+
+    void uploadProgress(qint64 sent, qint64 total) {
+        setMaximum(total);
+        setValue(sent);
+    }
+
+private:
+    QNetworkReply *m_reply;
+};
 
 ExpenseSharing::ExpenseSharing(QWidget *parent)
-    : QMainWindow(parent), m_group(new ExpenseGroup(this)) {
+    : QMainWindow(parent)
+    , m_group(new ExpenseGroup(this))
+    , m_manager(new QNetworkAccessManager(this)) {
     setupUi(this);
 
     tvExpenseDetails->setShowGrid(false);
@@ -41,14 +88,14 @@ ExpenseSharing::ExpenseSharing(QWidget *parent)
 ExpenseSharing::~ExpenseSharing() {
 }
 
-void ExpenseSharing::setCurrentFileName(const QString& filename) {
-    m_fileName = filename;
+void ExpenseSharing::setCurrentFileName(const QUrl& url) {
+    m_url = url;
 
     QSettings s;
     QStringList l = s.value("recentFiles", QStringList()).toStringList();
     int maxEntries = s.value("maxRecentFileEntries", 10).toUInt();
-    l.removeAll(filename);
-    l.prepend(filename);
+    l.removeAll(url.toString());
+    l.prepend(url.toString());
     while (l.count() > maxEntries)
         l.removeLast();
     s.setValue("recentFiles", l);
@@ -62,9 +109,9 @@ void ExpenseSharing::updateRecentMenu() {
             menuOpenRecent->removeAction(a);
         }
     }
-    QStringList files = QSettings().value("recentFiles").toStringList();
-    for (int n = 0; n < files.count(); ++n) {
-        QString fn = files.at(n);
+    QStringList urls = QSettings().value("recentFiles").toStringList();
+    for (int n = 0; n < urls.count(); ++n) {
+        QString fn = urls.at(n);
         QString prefix;
         if (n < 10)
             prefix = QString("&") + QString::number(n) + " ";
@@ -77,17 +124,38 @@ void ExpenseSharing::updateRecentMenu() {
 void ExpenseSharing::openRecentTriggered() {
     QAction *a = qobject_cast<QAction*>(sender());
     if (a)
-        open(a->data().toString());
+        open(QUrl(a->data().toString()));
+}
+
+bool ExpenseSharing::open(const QUrl& url) {
+    if (!url.isValid())
+        return false;
+    bool ok = false;
+    if (url.scheme() != "file") {
+        if (m_manager->networkAccessible() != QNetworkAccessManager::Accessible) {
+            QMessageBox::warning(this, tr("Error"), tr("Network is down."),
+                                 QMessageBox::Ok);
+            return false;
+        }
+        // read from distant storage
+        QNetworkRequest request;
+        request.setUrl(url);
+        request.setRawHeader("User-Agent", "ExpenseSharing");
+        QNetworkReply *reply = m_manager->get(request);
+        ok = NetworkWaiter(reply, this).wait() ? false : m_group->load(reply);
+    } else {
+        ok = m_group->load(url.toLocalFile());
+    }
+
+    if (ok) {
+        tvExpenseDetails->resizeColumnsToContents();
+        setCurrentFileName(url);
+    }
+    return ok;
 }
 
 bool ExpenseSharing::open(const QString& filename) {
-    bool ok = false;
-    if (QFile::exists(filename)) {
-        ok = m_group->load(filename);
-        tvExpenseDetails->resizeColumnsToContents();
-        setCurrentFileName(filename);
-    }
-    return ok;
+    return open(QUrl::fromLocalFile(filename));
 }
 
 void ExpenseSharing::on_actionOpen_triggered() {
@@ -99,27 +167,49 @@ void ExpenseSharing::on_actionOpen_triggered() {
     open(fn);
 }
 
+void ExpenseSharing::on_actionOpenUrl_triggered() {
+    QString url = QInputDialog::getText(this, tr("Open URL..."), tr("URL"));
+    open(QUrl::fromUserInput(url));
+}
+
 void ExpenseSharing::on_actionClearRecent_triggered() {
     QSettings().remove("recentFiles");
     updateRecentMenu();
 }
 
 void ExpenseSharing::on_actionSave_triggered() {
-    if (m_fileName.count())
-        m_group->save(m_fileName);
-    else
+    if (m_url.isValid()) {
+        if (m_url.scheme() == "file") {
+            m_group->save(m_url.toLocalFile());
+        } else {
+            // try to write to distant storage
+            if (m_manager->networkAccessible() != QNetworkAccessManager::Accessible) {
+                QMessageBox::warning(this, tr("Error"), tr("Network is down."),
+                                     QMessageBox::Ok);
+                return;
+            }
+            QBuffer buffer;
+            m_group->save(&buffer);
+            QNetworkRequest request;
+            request.setUrl(m_url);
+            request.setRawHeader("User-Agent", "ExpenseSharing");
+            QNetworkReply *reply = m_manager->put(request, &buffer);
+            NetworkWaiter(reply, this).wait();
+        }
+    } else {
         on_actionSaveAs_triggered();
+    }
 }
 
 void ExpenseSharing::on_actionSaveAs_triggered() {
     QString fn =
     QFileDialog::getSaveFileName(this,
                                  tr("Save expense log..."),
-                                 m_fileName,
+                                 m_url.toLocalFile(),
                                  "XSEM files (*.xsem);;All files (*)");
     if (fn.count()) {
         m_group->save(fn);
-        setCurrentFileName(fn);
+        setCurrentFileName(QUrl::fromLocalFile(fn));
     }
 }
 
@@ -195,3 +285,5 @@ void ExpenseSharing::on_tvExpenseDetails_customContextMenuRequested(const QPoint
         m_group->removeExpense(m_group->expenses().at(idx.row()));
     }
 }
+
+#include "expensesharing.moc"
