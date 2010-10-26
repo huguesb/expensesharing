@@ -1,0 +1,17 @@
+<!ELEMENT xsem (person*, expense*)>
+<!ATTLIST xsem
+    version     CDATA   #REQUIRED
+    name        CDATA   ""
+    >
+
+<!ELEMENT person (id, name)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+
+<!ELEMENT expense (date?, description?, value, paidBy, sharedBy)>
+<!ELEMENT date (#PCDATA)><!ELEMENT description (#PCDATA)>
+<!ELEMENT value (#PCDATA)>
+<!ELEMENT paidBy (#PCDATA)>
+<!ELEMENT sharedBy (personRef*)>
+<!ELEMENT personRef (#PCDATA)>
+

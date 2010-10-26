@@ -1,0 +1,16 @@
+element xsem {
+	element person {
+		element id { xsd:positiveInteger }
+		element name { text }
+	}*
+	element expense {
+		element date { xsd:date } ?
+		element description { text } ?
+		element value { xsd:double }
+		element paidBy { xsd:positiveInteger }
+		element sharedBy {
+			element personRef { xsd:positiveInteger }*
+		}
+	}*
+}
+

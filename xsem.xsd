@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="xsem">
+    <xs:complexType>
+	  <xs:sequence>
+		<xs:element name="person" minOccurs="0" maxOccurs="unbounded">
+		  <xs:complexType>
+		    <xs:sequence>
+		      <xs:element name="id" type="xs:nonNegativeInteger" />
+			  <xs:element name="name" type="xs:string" />
+			</xs:sequence>
+		  </xs:complexType>
+		</xs:element>
+		<xs:element name="expense" minOccurs="0" maxOccurs="unbounded">
+		  <xs:complexType>
+			<xs:sequence>
+			  <xs:element name="date" minOccurs="0"  type="xs:date" />
+			  <xs:element name="description" minOccurs="0" type="xs:string" />
+			  <xs:element name="value" >
+			    <xs:simpleType>
+				  <xs:restriction base="xs:double">
+				    <xs:minExclusive value="0" />
+				  </xs:restriction>
+				</xs:simpleType>
+			  </xs:element>
+			  <xs:element name="paidBy" type="xs:nonNegativeInteger" />
+			  <xs:element name="sharedBy">
+			    <xs:complexType>
+				  <xs:sequence>
+			        <xs:element name="personRef" type="xs:nonNegativeInteger" minOccurs="1" maxOccurs="unbounded" />
+				  </xs:sequence>
+				</xs:complexType>
+			  </xs:element>
+			</xs:sequence>
+		  </xs:complexType>
+		</xs:element>
+	  </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

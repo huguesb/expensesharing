@@ -41,6 +41,8 @@ and expenses.
 
 TODO
 ----
+ * CLI
+ * XSEM DTD
  * display of p2p debts
  * expense log diff
  * some form of networked / shared edit

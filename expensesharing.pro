@@ -35,4 +35,7 @@ FORMS    += expensesharing.ui \
 
 OTHER_FILES += \
     README.txt \
-    GPL.txt
+    GPL.txt \
+    xsem.xsd \
+    xsem.rnc \
+    xsem.dtd
