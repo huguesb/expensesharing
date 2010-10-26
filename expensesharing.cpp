@@ -26,6 +26,7 @@
 #include <QDebug>
 #include <QBuffer>
 #include <QSettings>
+#include <QAuthenticator>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -44,6 +45,12 @@ public:
         , m_reply(reply) {
         setAutoClose(true);
         setAutoReset(true);
+        connect(reply->manager(),
+                SIGNAL( authenticationRequired(QNetworkReply*, QAuthenticator*) ),
+                SLOT  ( authenticationRequired(QNetworkReply*, QAuthenticator*) ));
+        connect(reply,
+                SIGNAL( error(QNetworkReply::NetworkError) ),
+                SLOT  ( error(QNetworkReply::NetworkError) ));
         connect(reply,
                 SIGNAL( uploadProgress(qint64, qint64) ),
                 SLOT  ( uploadProgress(qint64, qint64) ));
@@ -55,10 +62,32 @@ public:
 public slots:
     bool wait() {
         exec();
-        return wasCanceled();
+        bool err = wasCanceled() && !m_reply->isFinished();
+        if (err)
+            m_reply->abort();
+        return err;
     }
 
 private slots:
+    void error(QNetworkReply::NetworkError error) {
+        QMessageBox::warning(this,
+                             tr("Transfer failed"),
+                             tr("%2 [%1]")
+                                .arg(error)
+                                .arg(m_reply->errorString()));
+        reset();
+    }
+
+    void authenticationRequired(QNetworkReply *reply, QAuthenticator *auth) {
+        if (reply != m_reply)
+            return;
+        // TODO : proper credential input
+        QString usr = QInputDialog::getText(this, tr("Auth required"), tr("Username"));
+        QString pwd = QInputDialog::getText(this, tr("Auth required"), tr("Password"));
+        auth->setUser(usr);
+        auth->setPassword(pwd);
+    }
+
     void downloadProgress(qint64 received, qint64 total) {
         setMaximum(total);
         setValue(received);
@@ -156,6 +185,7 @@ bool ExpenseSharing::open(const QUrl& url) {
         request.setRawHeader("User-Agent", "ExpenseSharing");
         QNetworkReply *reply = m_manager->get(request);
         ok = NetworkWaiter(reply, this).wait() ? false : m_group->load(reply);
+        delete reply;
     } else {
         ok = m_group->load(url.toLocalFile());
     }
@@ -208,6 +238,7 @@ void ExpenseSharing::on_actionSave_triggered() {
             request.setRawHeader("User-Agent", "ExpenseSharing");
             QNetworkReply *reply = m_manager->put(request, &buffer);
             NetworkWaiter(reply, this).wait();
+            delete reply;
         }
     } else {
         on_actionSaveAs_triggered();
