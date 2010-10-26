@@ -14,7 +14,8 @@ A small program to manage shared expenses among flatmates (for instance).
 How to build it
 ---------------
 
-To build ExpenseSharing you need a C++ compiler and Qt4 development packages.
+To build ExpenseSharing you need a C++ compiler and Qt development packages in
+version 4.6 or higher.
 
 
 How to use it
