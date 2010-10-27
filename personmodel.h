@@ -23,7 +23,7 @@ class PersonModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit PersonModel(ExpenseGroup *group);
+    explicit PersonModel(const ExpenseGroup *group, QObject *p = 0);
 
     virtual QModelIndex index(int row, int column,
                               const QModelIndex &parent) const;
@@ -48,7 +48,7 @@ private slots:
     void personsReset();
 
 private:
-    ExpenseGroup *m_group;
+    const ExpenseGroup *m_group;
 };
 
 #endif // PERSONMODEL_H

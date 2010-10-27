@@ -23,7 +23,7 @@ class ExpenseModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit ExpenseModel(ExpenseGroup *group);
+    explicit ExpenseModel(const ExpenseGroup *group, QObject *p = 0);
 
     virtual QModelIndex index(int row, int column,
                               const QModelIndex &parent) const;
@@ -47,7 +47,7 @@ private slots:
     void expensesReset();
 
 private:
-    ExpenseGroup *m_group;
+    const ExpenseGroup *m_group;
 };
 
 #endif // EXPENSEMODEL_H

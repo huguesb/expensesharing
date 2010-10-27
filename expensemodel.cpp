@@ -19,8 +19,9 @@
 
 #include <QStringList>
 
-ExpenseModel::ExpenseModel(ExpenseGroup *group) :
-    QAbstractItemModel(group), m_group(group) {
+ExpenseModel::ExpenseModel(const ExpenseGroup *group, QObject *p)
+    : QAbstractItemModel(p)
+    , m_group(group) {
     connect(group, SIGNAL( expenseAboutToBeAdded(int) ),
             this , SLOT  ( expenseAboutToBeAdded(int) ));
     connect(group, SIGNAL( expenseAdded(Expense*) ),

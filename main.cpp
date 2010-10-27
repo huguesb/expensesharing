@@ -12,7 +12,9 @@
 ******************************************************************************/
 
 #include <QtGui/QApplication>
-#include "expensesharing.h"
+
+#include "expensesharingui.h"
+#include "expensesharingcli.h"
 
 int main(int argc, char *argv[])
 {
@@ -21,8 +23,13 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationDomain("http://bruant.it");
 
     QApplication app(argc, argv);
-    ExpenseSharing w;
-    w.show();
 
-    return app.exec();
+    if (argc <= 1 || !QString::fromLocal8Bit(argv[1]).startsWith("--")) {
+        ExpenseSharingUI ui;
+        ui.show();
+        return app.exec();
+    } else {
+        ExpenseSharingCLI cli;
+        return app.exec();
+    }
 }

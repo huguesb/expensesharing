@@ -17,8 +17,9 @@
 #include "expense.h"
 #include "expensegroup.h"
 
-PersonModel::PersonModel(ExpenseGroup *group) :
-    QAbstractItemModel(group), m_group(group) {
+PersonModel::PersonModel(const ExpenseGroup *group, QObject *p)
+    : QAbstractItemModel(p)
+    , m_group(group) {
     connect(group, SIGNAL( personAboutToBeAdded(int) ),
             this , SLOT  ( personAboutToBeAdded(int) ));
     connect(group, SIGNAL( personAdded(Person*) ),

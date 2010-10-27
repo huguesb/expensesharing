@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ExpenseSharing</class>
- <widget class="QMainWindow" name="ExpenseSharing">
+ <class>ExpenseSharingUI</class>
+ <widget class="QMainWindow" name="ExpenseSharingUI">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -117,7 +117,15 @@
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menu_Edit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionAdd"/>
+    <addaction name="separator"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menu_Edit"/>
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -157,7 +165,7 @@
   </action>
   <action name="actionAdd">
    <property name="text">
-    <string>&amp;Add...</string>
+    <string>&amp;Add expense...</string>
    </property>
   </action>
   <action name="actionHelp">
@@ -187,7 +195,7 @@
   <connection>
    <sender>actionQuit</sender>
    <signal>triggered()</signal>
-   <receiver>ExpenseSharing</receiver>
+   <receiver>ExpenseSharingUI</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

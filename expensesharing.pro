@@ -11,25 +11,29 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        expensesharing.cpp \
+    expensesharingcli.cpp \
+    expensesharingui.cpp \
     expense.cpp \
     person.cpp \
     expensegroup.cpp \
     expensemodel.cpp \
     personmodel.cpp \
     newpersondialog.cpp \
-    newexpensedialog.cpp
+    newexpensedialog.cpp \
+    expensesharing.cpp
 
-HEADERS  += expensesharing.h \
+HEADERS  += expensesharingcli.h \
+    expensesharingui.h \
     expense.h \
     person.h \
     expensegroup.h \
     expensemodel.h \
     personmodel.h \
     newpersondialog.h \
-    newexpensedialog.h
+    newexpensedialog.h \
+    expensesharing.h
 
-FORMS    += expensesharing.ui \
+FORMS    += expensesharingui.ui \
     newpersondialog.ui \
     newexpensedialog.ui
 

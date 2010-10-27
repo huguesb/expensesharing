@@ -40,12 +40,17 @@ ExpenseSharing stores its data in XSEM files (eXtensible Shared Expense Manager)
 which are basically XML files with a .xsem extension storing a list of persons
 and expenses.
 
+The XSEM file format is formalized in schemas (DTD, XSD and compact RelaxNG are
+provided). However these schemas do not allow complete validation. For instance,
+due to limitations of the schema languages, they cannot ensure that expenses
+refer to valid persons.
+
+
 TODO
 ----
  * CLI
- * XSEM DTD
+ * undo/redo
  * display of p2p debts
  * expense log diff
  * some form of networked / shared edit
- * use more precise math?
  * interface polish

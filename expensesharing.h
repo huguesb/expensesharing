@@ -14,51 +14,88 @@
 #ifndef EXPENSESHARING_H
 #define EXPENSESHARING_H
 
+#include <QObject>
 #include <QUrl>
-#include <QMainWindow>
+#include <QUndoStack>
+#include <QNetworkReply>
 
-#include "ui_expensesharing.h"
-
+class Person;
+class Expense;
 class ExpenseGroup;
 
+class QAuthenticator;
 class QNetworkAccessManager;
 
-class ExpenseSharing : public QMainWindow, private Ui::ExpenseSharing
-{
+class NetworkWaiter : public QObject {
     Q_OBJECT
-
 public:
-    explicit ExpenseSharing(QWidget *parent = 0);
-    ~ExpenseSharing();
+    NetworkWaiter(QNetworkReply *reply, QObject *p = 0);
 
 public slots:
-    bool open(const QUrl& url);
-    bool open(const QString& filename);
+    bool wait();
 
-private slots:
-    void on_actionOpen_triggered();
-    void on_actionOpenUrl_triggered();
-    void on_actionClearRecent_triggered();
-    void on_actionSave_triggered();
-    void on_actionSaveAs_triggered();
-    void on_actionAdd_triggered();
-    void on_actionHelp_triggered();
-    void on_actionAbout_triggered();
+protected slots:
+    void finished();
+    void error(QNetworkReply::NetworkError error);
+    void authenticationRequired(QNetworkReply *reply, QAuthenticator *auth);
 
-    void openRecentTriggered();
+    void uploadProgress(qint64 sent, qint64 total);
+    void downloadProgress(qint64 received, qint64 total);
 
+protected:
+    QNetworkReply *m_reply;
+};
+
+class ExpenseSharing : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ExpenseSharing(QObject *parent = 0);
+
+    QUrl url() const;
+    const ExpenseGroup* expenseGroup() const;
+
+    QString errorString() const;
+
+    bool isModified() const;
+
+    bool canUndo();
+    bool canRedo();
+
+    QAction* createUndoAction(QObject *parent, const QString& prefix = QString()) const;
+    QAction* createRedoAction(QObject *parent, const QString& prefix = QString()) const;
+
+signals:
     void summaryChanged();
-    void currentPersonChanged(const QModelIndex& idx);
-    void on_lvPersons_customContextMenuRequested(const QPoint& pos);
-    void on_tvExpenseDetails_customContextMenuRequested(const QPoint& pos);
+    void urlChanged(const QUrl& url);
+    void modificationChanged(bool modified);
+
+public slots:
+    virtual bool open(const QUrl& url);
+    virtual bool open(const QString& filename);
+
+    virtual bool save();
+    virtual bool saveAs(const QUrl& url);
+    virtual bool saveAs(const QString& filename);
+
+    void addPerson(Person *person);
+    void removePerson(Person *person);
+
+    void addExpense(Expense *expense);
+    void removeExpense(Expense *expense);
+
+    void undo();
+    void redo();
+
+protected:
+    virtual void setUrl(const QUrl& url);
+    virtual NetworkWaiter* createWaiter(QNetworkReply *reply) = 0;
 
 private:
-    void updateRecentMenu();
-    void setCurrentFileName(const QUrl& url);
-
     QUrl m_url;
+    QString m_error;
     ExpenseGroup *m_group;
-
+    QUndoStack m_commands;
     QNetworkAccessManager *m_manager;
 };
 
