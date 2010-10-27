@@ -39,12 +39,11 @@ class NetworkWaiter : public QProgressDialog {
     Q_OBJECT
 public:
     NetworkWaiter(QNetworkReply *reply, QWidget *p = 0)
-        : QProgressDialog(tr("Transferring..."),
+        : QProgressDialog(tr("Transferring %1...").arg(reply->url().toString()),
                           tr("Abort transfer"),
                           0, -1, p)
         , m_reply(reply) {
         setAutoClose(true);
-        setAutoReset(true);
         connect(reply->manager(),
                 SIGNAL( authenticationRequired(QNetworkReply*, QAuthenticator*) ),
                 SLOT  ( authenticationRequired(QNetworkReply*, QAuthenticator*) ));
@@ -57,6 +56,9 @@ public:
         connect(reply,
                 SIGNAL( downloadProgress(qint64, qint64) ),
                 SLOT  ( downloadProgress(qint64, qint64) ));
+        connect(reply,
+                SIGNAL( finished() ),
+                SLOT  ( reset() ));
     }
 
 public slots:
@@ -185,7 +187,7 @@ bool ExpenseSharing::open(const QUrl& url) {
         request.setRawHeader("User-Agent", "ExpenseSharing");
         QNetworkReply *reply = m_manager->get(request);
         ok = NetworkWaiter(reply, this).wait() ? false : m_group->load(reply);
-        delete reply;
+        reply->deleteLater();
     } else {
         ok = m_group->load(url.toLocalFile());
     }
@@ -198,7 +200,7 @@ bool ExpenseSharing::open(const QUrl& url) {
 }
 
 bool ExpenseSharing::open(const QString& filename) {
-    return open(QUrl::fromLocalFile(filename));
+    return filename.count() ? open(QUrl::fromLocalFile(filename)) : false;
 }
 
 void ExpenseSharing::on_actionOpen_triggered() {
@@ -232,13 +234,14 @@ void ExpenseSharing::on_actionSave_triggered() {
                 return;
             }
             QBuffer buffer;
+            buffer.open(QBuffer::ReadWrite);
             m_group->save(&buffer);
+            buffer.seek(0);
             QNetworkRequest request;
             request.setUrl(m_url);
             request.setRawHeader("User-Agent", "ExpenseSharing");
             QNetworkReply *reply = m_manager->put(request, &buffer);
             NetworkWaiter(reply, this).wait();
-            delete reply;
         }
     } else {
         on_actionSaveAs_triggered();
