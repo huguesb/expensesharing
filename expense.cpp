@@ -13,6 +13,9 @@
 
 #include "expense.h"
 
+#include "person.h"
+#include <QStringList>
+
 Expense::Expense()
     : m_value(0.0), m_payer(0) {
 }
@@ -74,6 +77,13 @@ QList<Person*> Expense::personsSharing() const {
 
 void Expense::setPersonSharing(const QList<Person*>& persons) {
     m_personsSharing = persons;
+}
+
+QStringList Expense::personsSharingNames() const {
+    QStringList l;
+    foreach (Person *person, m_personsSharing)
+        l << person->name();
+    return l;
 }
 
 void Expense::addPersonSharing(Person *person) {

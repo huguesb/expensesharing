@@ -18,6 +18,7 @@
 
 #include <QHash>
 #include <QFile>
+#include <QStringList>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
@@ -42,6 +43,13 @@ void ExpenseGroup::setName(const QString& name) {
 
 QList<Person*> ExpenseGroup::persons() const {
     return m_persons;
+}
+
+QStringList ExpenseGroup::personNames() const {
+    QStringList l;
+    foreach (Person *person, m_persons)
+        l << person->name();
+    return l;
 }
 
 void ExpenseGroup::addPerson(Person *person) {

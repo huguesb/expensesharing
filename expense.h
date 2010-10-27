@@ -42,6 +42,7 @@ public:
 
     int personsSharingCount() const;
     QList<Person*> personsSharing() const;
+    QStringList personsSharingNames() const;
     void setPersonSharing(const QList<Person*>& persons);
     void addPersonSharing(Person *person);
     void removePerson(Person *person);

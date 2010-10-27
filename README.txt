@@ -49,7 +49,6 @@ refer to valid persons.
 TODO
 ----
  * CLI
- * undo/redo
  * display of p2p debts
  * expense log diff
  * some form of networked / shared edit

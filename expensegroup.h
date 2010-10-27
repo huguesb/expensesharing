@@ -43,6 +43,7 @@ public:
     void setName(const QString& name);
 
     QList<Person*> persons() const;
+    QStringList personNames() const;
     void addPerson(Person *person);
     void removePerson(Person *person);
     void clearPersons();

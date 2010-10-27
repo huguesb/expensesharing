@@ -45,6 +45,7 @@ QModelIndex ExpenseModel::index(int row, int column,
 }
 
 QModelIndex ExpenseModel::parent(const QModelIndex &child) const {
+    Q_UNUSED(child)
     return QModelIndex();
 }
 
@@ -53,18 +54,12 @@ int ExpenseModel::rowCount(const QModelIndex &parent) const {
 }
 
 int ExpenseModel::columnCount(const QModelIndex &parent) const {
+    Q_UNUSED(parent)
     return 5;
 }
 
 bool ExpenseModel::hasChildren(const QModelIndex &parent) const {
     return !parent.isValid();
-}
-
-static QStringList getNames(const QList<Person*>& persons) {
-    QStringList l;
-    foreach (Person *p, persons)
-        l << p->name();
-    return l;
 }
 
 QVariant ExpenseModel::data(const QModelIndex &index, int role) const {
@@ -80,7 +75,7 @@ QVariant ExpenseModel::data(const QModelIndex &index, int role) const {
         case 3:
             return expense->payer()->name();
         case 4:
-            return getNames(expense->personsSharing()).join(",");
+            return expense->personsSharingNames().join(",");
         default:
             return QVariant();
         }
@@ -105,6 +100,7 @@ void ExpenseModel::expenseAboutToBeAdded(int idx) {
 }
 
 void ExpenseModel::expenseAdded(Expense *expense) {
+    Q_UNUSED(expense)
     endInsertRows();
 }
 
@@ -113,6 +109,7 @@ void ExpenseModel::expenseAboutToBeRemoved(int idx) {
 }
 
 void ExpenseModel::expenseRemoved(Expense *expense) {
+    Q_UNUSED(expense)
     endRemoveRows();
 }
 

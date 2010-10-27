@@ -32,7 +32,7 @@
 #include <QUndoCommand>
 
 NetworkWaiter::NetworkWaiter(QNetworkReply *reply, QObject *p)
-    : QObject(p) {
+    : QObject(p), m_reply(reply) {
     connect(reply->manager(),
             SIGNAL( authenticationRequired(QNetworkReply*, QAuthenticator*) ),
             SLOT  ( authenticationRequired(QNetworkReply*, QAuthenticator*) ));
@@ -189,6 +189,10 @@ void ExpenseSharing::setUrl(const QUrl& url) {
 
 const ExpenseGroup* ExpenseSharing::expenseGroup() const {
     return m_group;
+}
+
+QString ExpenseSharing::errorString() const {
+    return m_error;
 }
 
 bool ExpenseSharing::isModified() const {

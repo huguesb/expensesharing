@@ -43,6 +43,7 @@ QModelIndex PersonModel::index(int row, int column,
 }
 
 QModelIndex PersonModel::parent(const QModelIndex &child) const {
+    Q_UNUSED(child)
     return QModelIndex();
 }
 
@@ -51,6 +52,7 @@ int PersonModel::rowCount(const QModelIndex &parent) const {
 }
 
 int PersonModel::columnCount(const QModelIndex &parent) const {
+    Q_UNUSED(parent)
     return 1;
 }
 
@@ -76,6 +78,7 @@ void PersonModel::personAboutToBeAdded(int idx) {
 }
 
 void PersonModel::personAdded(Person *person) {
+    Q_UNUSED(person)
     endInsertRows();
 }
 
@@ -84,6 +87,7 @@ void PersonModel::personAboutToBeRemoved(int idx) {
 }
 
 void PersonModel::personRemoved(Person *person) {
+    Q_UNUSED(person)
     endRemoveRows();
 }
 

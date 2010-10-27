@@ -9,6 +9,12 @@ QT       += core gui network
 TARGET = expensesharing
 TEMPLATE = app
 
+CONFIG += readline
+
+readline {
+    DEFINES += USE_READLINE
+    LIBS += -lreadline -lcurses
+}
 
 SOURCES += main.cpp\
     expensesharingcli.cpp \
