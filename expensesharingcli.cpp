@@ -29,6 +29,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
+#include <QFileInfo>
 #include <QStringList>
 #include <QTimer>
 #include <QThread>
@@ -193,10 +194,25 @@ ExpenseSharingCLI::ExpenseSharingCLI(QObject *p)
 
 
 static QUrl urlFromInput(const QString& input) {
-    qDebug("fn: %s", qPrintable(input));
-    if (QFile::exists(input))
-        return QUrl::fromLocalFile(input);
+    QFileInfo info(input);
+    QString cano = info.canonicalFilePath();
+    if (cano.count())
+        return QUrl::fromLocalFile(cano);
     return QUrl::fromUserInput(input);
+}
+
+static Person* findPerson(const QString& s, QList<Person*> l) {
+    bool ok = false;
+    int n = s.toInt(&ok, 0);
+
+    if (ok && 0 <= n && n < l.count())
+        return l.at(n);
+
+    foreach (Person *p, l)
+        if (p->name() == s)
+            return p;
+
+    return 0;
 }
 
 void ExpenseSharingCLI::command(const QString& cmd, const QStringList& args) {
@@ -212,39 +228,82 @@ void ExpenseSharingCLI::command(const QString& cmd, const QStringList& args) {
                 "  addexpense\n"
                 "  removeexpense\n"
                 "  showexpense\n"
+                "  quit\n"
                 "  \n"
                 "Type help <command> for detailed help.\n");
         } else {
-
+            const QString& s = args.at(0);
+            if (s == "open" || s == "o")
+                ;
+            else if (s == "save" || s == "s")
+                ;
+            else if (s == "addperson" || s == "ap")
+                ;
+            else if (s == "removeperson" || s == "rp")
+                ;
+            else if (s == "showperson" || s == "sp" )
+                ;
+            else if (s == "addexpense" || s == "ax")
+                ;
+            else if (s == "removeexpense" || s == "rx")
+                ;
+            else if (s == "showexpense" || s == "sx")
+                ;
         }
-    } else if (cmd == "open") {
-        if (args.count() != 1)
+    } else if (cmd == "open" || cmd == "o") {
+        if (args.count() != 1) {
             emit output("open expects exactly one argument.\n");
-        if (!m_d->open(urlFromInput(args.at(0))))
-            emit output(m_d->errorString() + "\n");
-    } else if (cmd == "save") {
-        if (args.count() > 1)
+        } else {
+            if (!m_d->open(urlFromInput(args.at(0))))
+                emit output(m_d->errorString() + "\n");
+        }
+    } else if (cmd == "save" || cmd == "s") {
+        if (args.count() > 1) {
             emit output("save expects at most one argument.\n");
-        bool ok = args.isEmpty() ? m_d->save() : m_d->saveAs(urlFromInput(args.at(0)));
-        if (!ok)
-            emit output(m_d->errorString() + "\n");
-    } else if (cmd == "addperson" || cmd == "addp") {
-        Person *p = new Person;
-        m_d->addPerson(p);
-    } else if (cmd == "removeperson" || cmd == "remp") {
-        m_d->removePerson(0);
+        } else {
+            bool ok = args.isEmpty() ? m_d->save() : m_d->saveAs(urlFromInput(args.at(0)));
+            if (!ok)
+                emit output(m_d->errorString() + "\n");
+        }
+    } else if (cmd == "addperson" || cmd == "ap") {
+        if (args.count() != 1) {
+            emit output("addperson expects exactly one argument.\n");
+        } else {
+            Person *p = new Person(args.at(0));
+            m_d->addPerson(p);
+        }
+    } else if (cmd == "removeperson" || cmd == "rp") {
+        if (args.count() != 1) {
+            emit output("removeperson expects exactly one argument.\n");
+        } else {
+            Person *person = findPerson(args.at(0),
+                                        m_d->expenseGroup()->persons());
+            if (person)
+                m_d->removePerson(person);
+            else
+              emit output(tr("No match for person \"%1\"\n").arg(args.at(0)));
+        }
     } else if (cmd == "showperson" || cmd == "sp") {
-        if (args.count()) {
-
+        if (args.count() > 1) {
+            emit output("showperson expects at most one argument.\n");
+        } else if (args.count()) {
+            Person *person = findPerson(args.at(0),
+                                        m_d->expenseGroup()->persons());
+            if (person)
+                emit output(tr("%1 : \n").arg(person->name()));
+            else
+                emit output(tr("No match for person \"%1\"\n").arg(args.at(0)));
         } else {
             emit output(m_d->expenseGroup()->personNames().join("\n") + "\n");
         }
-    } else if (cmd == "addexpense" || cmd == "addx") {
+    } else if (cmd == "addexpense" || cmd == "ax") {
 
-    } else if (cmd == "removeexpense" || cmd == "remx") {
+    } else if (cmd == "removeexpense" || cmd == "rx") {
 
     } else if (cmd == "showexpense" || cmd == "sx") {
 
+    } else {
+        emit output(tr("Unrecognized command : \"%1\"\n").arg(cmd));
     }
     emit commandDone();
 }
