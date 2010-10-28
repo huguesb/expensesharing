@@ -260,25 +260,56 @@ void ExpenseSharingCLI::command(const QString& cmd, const QStringList& args) {
         } else {
             const QString& s = args.at(0);
             if (s == "open" || s == "o")
-                emit output(tr("\n"));
+                emit output(tr("open <file>\n"
+                               "Shorthand: o\n"
+                               "Open a local or remote file for editing.\n"
+                               "\n"));
             else if (s == "save" || s == "s")
-                emit output(tr("\n"));
+                emit output(tr("save [file]\n"
+                               "Shorthand: s\n"
+                               "Save the current file to local or remote storage.\n"
+                               "\n"));
             else if (s == "addperson" || s == "ap")
-                emit output(tr("\n"));
+                emit output(tr("addperson <name>\n"
+                               "Shorthand: ap\n"
+                               "Add a person\n"
+                               "\n"));
             else if (s == "removeperson" || s == "rp")
-                emit output(tr("\n"));
+                emit output(tr("removeperson <index|name>\n"
+                               "Shorthand: rp\n"
+                               "Remove a person\n"
+                               "\n"));
             else if (s == "showperson" || s == "sp" )
-                emit output(tr("\n"));
+                emit output(tr("showperson [index|name]\n"
+                               "Shorthand: sp\n"
+                               "Show the list of persons or details about a specific person\n"
+                               "\n"));
             else if (s == "addexpense" || s == "ax")
-                emit output(tr("\n"));
+                emit output(tr("addperson <date> <description> <value> <paidBy> <sharedBy>\n"
+                               "Shorthand: ax\n"
+                               "Add an expense. paidBy is a person's name or index.\n"
+                               "sharedBy is a coma-separated list of person names or indices\n"
+                               "\n"));
             else if (s == "removeexpense" || s == "rx")
-                emit output(tr("\n"));
+                emit output(tr("removeexpense <index|description>\n"
+                               "Shorthand: rx\n"
+                               "Remove an expense\n"
+                               "\n"));
             else if (s == "showexpense" || s == "sx")
-                emit output(tr("\n"));
+                emit output(tr("removeexpense <index|description>\n"
+                               "Shorthand: sx\n"
+                               "Show the list of expenses or details about a specific expense\n"
+                               "\n"));
             else if (s == "undo" || s == "u")
-                emit output(tr("\n"));
+                emit output(tr("undo\n"
+                               "Shorthand: u\n"
+                               "Undo the last editing action\n"
+                               "\n"));
             else if (s == "redo" || s == "r")
-                emit output(tr("\n"));
+                emit output(tr("redo\n"
+                               "Shorthand: r\n"
+                               "Redo the last editing action\n"
+                               "\n"));
             else
                 emit output(tr("Unrecognized command : \"%1\"\n").arg(s));
         }
