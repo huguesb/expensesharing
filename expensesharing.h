@@ -32,15 +32,15 @@ public:
     NetworkWaiter(QNetworkReply *reply, QObject *p = 0);
 
 public slots:
-    bool wait();
+    virtual bool wait();
 
 protected slots:
-    void finished();
-    void error(QNetworkReply::NetworkError error);
-    void authenticationRequired(QNetworkReply *reply, QAuthenticator *auth);
+    virtual void finished();
+    virtual void error(QNetworkReply::NetworkError error);
+    virtual void authenticationRequired(QNetworkReply *reply, QAuthenticator *auth);
 
-    void uploadProgress(qint64 sent, qint64 total);
-    void downloadProgress(qint64 received, qint64 total);
+    virtual void uploadProgress(qint64 sent, qint64 total);
+    virtual void downloadProgress(qint64 received, qint64 total);
 
 protected:
     QNetworkReply *m_reply;

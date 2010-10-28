@@ -55,7 +55,14 @@ public:
     }
 
     void authenticationRequired(QNetworkReply *reply, QAuthenticator *auth) {
-        NetworkWaiter::authenticationRequired(reply, auth);
+        qDebug("auth required");
+        //NetworkWaiter::authenticationRequired(reply, auth);
+        QString usr = QString::fromLocal8Bit(readline("username: "));
+        QString pwd = QString::fromLocal8Bit(readline("password: "));
+        usr.chop(1);
+        pwd.chop(1);
+        auth->setUser(usr);
+        auth->setPassword(pwd);
     }
 
     void downloadProgress(qint64 received, qint64 total) {
@@ -411,12 +418,12 @@ void ExpenseSharingCLI::command(const QString& cmd, const QStringList& args) {
         } else if (args.count()) {
             Expense *e = findExpense(args.at(0), l);
             if (e)
-                emit output(expenseToString(e));
+                emit output(expenseToString(e) + "\n");
             else
                 emit output(tr("No match for expense \"%1\"\n").arg(args.at(0)));
         } else {
             foreach (Expense *e, l)
-                emit output(expenseToString(e));
+                emit output(expenseToString(e) + "\n");
         }
     } else if (cmd == "undo" || cmd == "u") {
         if (args.count())
