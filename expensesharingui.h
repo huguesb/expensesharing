@@ -31,6 +31,8 @@ public:
     explicit ExpenseSharingUI(QWidget *parent = 0);
     ~ExpenseSharingUI();
 
+    ExpenseSharing* expenseSharing() const;
+
 public slots:
     bool open(const QUrl& url);
     bool open(const QString& filename);

@@ -23,7 +23,9 @@ class ExpenseSharingCLI : public QObject
 {
     Q_OBJECT
 public:
-    ExpenseSharingCLI(QObject *p = 0);
+    ExpenseSharingCLI(bool interactive, QObject *p = 0);
+
+    ExpenseSharing* expenseSharing() const;
 
 public slots:
     void command(const QString& command, const QStringList& args);

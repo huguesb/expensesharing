@@ -196,7 +196,7 @@ QString ExpenseSharing::errorString() const {
 }
 
 bool ExpenseSharing::isModified() const {
-    return m_commands.isClean();
+    return !m_commands.isClean();
 }
 
 bool ExpenseSharing::canUndo() {

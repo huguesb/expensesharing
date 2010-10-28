@@ -103,9 +103,10 @@ static QStringList splitCommandLine(const char *s) {
 class CLI : public QThread {
     Q_OBJECT
 public:
-    CLI(QObject *p = 0)
+    CLI(bool interactive, QObject *p = 0)
         : QThread(p) {
-        start();
+        if (interactive)
+            start();
     }
 
     virtual void run() {
@@ -178,20 +179,24 @@ protected:
     }
 };
 
-ExpenseSharingCLI::ExpenseSharingCLI(QObject *p)
+ExpenseSharingCLI::ExpenseSharingCLI(bool interactive, QObject *p)
     : QObject(p)
-    , m_cli(new CLI(this))
+    , m_cli(new CLI(interactive, this))
     , m_d(new ExpenseSharingCLIPrivate(this)) {
-
-    connect(m_cli,
-            SIGNAL( command(QString, QStringList) ),
-            SLOT  ( command(QString, QStringList) ));
-    connect(this , SIGNAL( commandDone() ),
-            m_cli, SLOT  ( promptReady() ));
-    connect(this , SIGNAL( output(QString) ),
-            m_cli, SLOT  ( output(QString) ));
+    if (m_cli) {
+        connect(m_cli,
+                SIGNAL( command(QString, QStringList) ),
+                SLOT  ( command(QString, QStringList) ));
+        connect(this , SIGNAL( commandDone() ),
+                m_cli, SLOT  ( promptReady() ));
+        connect(this , SIGNAL( output(QString) ),
+                m_cli, SLOT  ( output(QString) ));
+    }
 }
 
+ExpenseSharing* ExpenseSharingCLI::expenseSharing() const {
+    return m_d;
+}
 
 static QUrl urlFromInput(const QString& input) {
     QFileInfo info(input);
@@ -215,6 +220,25 @@ static Person* findPerson(const QString& s, QList<Person*> l) {
     return 0;
 }
 
+static Expense* findExpense(const QString& s, QList<Expense*> l) {
+    bool ok = false;
+    int n = s.toInt(&ok, 0);
+
+    if (ok && 0 <= n && n < l.count())
+        return l.at(n);
+
+    // TODO: improve matching (use other fields and regexps)
+    foreach (Expense *e, l)
+        if (e->description() == s)
+            return e;
+
+    return 0;
+}
+
+static QString expenseToString(Expense *e) {
+    return e->description();
+}
+
 void ExpenseSharingCLI::command(const QString& cmd, const QStringList& args) {
     if (cmd == "help") {
         if (args.isEmpty()) {
@@ -228,27 +252,35 @@ void ExpenseSharingCLI::command(const QString& cmd, const QStringList& args) {
                 "  addexpense\n"
                 "  removeexpense\n"
                 "  showexpense\n"
+                "  undo\n"
+                "  redo\n"
                 "  quit\n"
                 "  \n"
                 "Type help <command> for detailed help.\n");
         } else {
             const QString& s = args.at(0);
             if (s == "open" || s == "o")
-                ;
+                emit output(tr("\n"));
             else if (s == "save" || s == "s")
-                ;
+                emit output(tr("\n"));
             else if (s == "addperson" || s == "ap")
-                ;
+                emit output(tr("\n"));
             else if (s == "removeperson" || s == "rp")
-                ;
+                emit output(tr("\n"));
             else if (s == "showperson" || s == "sp" )
-                ;
+                emit output(tr("\n"));
             else if (s == "addexpense" || s == "ax")
-                ;
+                emit output(tr("\n"));
             else if (s == "removeexpense" || s == "rx")
-                ;
+                emit output(tr("\n"));
             else if (s == "showexpense" || s == "sx")
-                ;
+                emit output(tr("\n"));
+            else if (s == "undo" || s == "u")
+                emit output(tr("\n"));
+            else if (s == "redo" || s == "r")
+                emit output(tr("\n"));
+            else
+                emit output(tr("Unrecognized command : \"%1\"\n").arg(s));
         }
     } else if (cmd == "open" || cmd == "o") {
         if (args.count() != 1) {
@@ -290,18 +322,85 @@ void ExpenseSharingCLI::command(const QString& cmd, const QStringList& args) {
             Person *person = findPerson(args.at(0),
                                         m_d->expenseGroup()->persons());
             if (person)
-                emit output(tr("%1 : \n").arg(person->name()));
+                emit output(tr("%1 : \n"
+                               "  expense = %2\n"
+                               "  group debt = %3\n"
+                               "\n")
+                            .arg(person->name())
+                            .arg(m_d->expenseGroup()->expense(person))
+                            .arg(m_d->expenseGroup()->debt(person)));
             else
                 emit output(tr("No match for person \"%1\"\n").arg(args.at(0)));
         } else {
             emit output(m_d->expenseGroup()->personNames().join("\n") + "\n");
         }
     } else if (cmd == "addexpense" || cmd == "ax") {
+        if (args.count() != 5) {
+            emit output("addexpense expects exactly five argument.\n");
+        } else {
+            Person *p;
+            QList<Person*> l = m_d->expenseGroup()->persons();
+            QDate date = QDate::fromString(args.at(0));
+            QString description = args.at(1);
+            double value = args.at(2).toDouble();
+            Person *paidBy = findPerson(args.at(3), l);
+            if (!paidBy)
+                emit output(tr("No match for person \"%1\"\n").arg(args.at(3)));
+            QList<Person*> sharedBy;
+            QStringList sharedNames = args.at(4).split(",");
+            foreach (QString name, sharedNames) {
+                if ((p = findPerson(name, l)))
+                    sharedBy << p;
+                else
+                    emit output(tr("No match for person \"%1\"\n").arg(name));
+            }
 
+            if (paidBy && sharedBy.count() && sharedBy.count() == sharedNames.count()) {
+                Expense *e = new Expense(paidBy, date, description, value, sharedBy);
+                m_d->addExpense(e);
+            } else {
+                emit output(tr("Expense creation failed due to invalid parameters.\n"));
+            }
+        }
     } else if (cmd == "removeexpense" || cmd == "rx") {
-
+        if (args.count() != 1) {
+            emit output("removeperson expects exactly one argument.\n");
+        } else {
+            Expense *expense = findExpense(args.at(0),
+                                           m_d->expenseGroup()->expenses());
+            if (expense)
+                m_d->removeExpense(expense);
+            else
+              emit output(tr("No match for expense \"%1\"\n").arg(args.at(0)));
+        }
     } else if (cmd == "showexpense" || cmd == "sx") {
-
+        QList<Expense*> l = m_d->expenseGroup()->expenses();
+        if (args.count() > 1) {
+            emit output("showexpense expects at most one argument.\n");
+        } else if (args.count()) {
+            Expense *e = findExpense(args.at(0), l);
+            if (e)
+                emit output(expenseToString(e));
+            else
+                emit output(tr("No match for expense \"%1\"\n").arg(args.at(0)));
+        } else {
+            foreach (Expense *e, l)
+                emit output(expenseToString(e));
+        }
+    } else if (cmd == "undo" || cmd == "u") {
+        if (args.count())
+            emit output("undo expects no argument.\n");
+        else if (m_d->canUndo())
+            m_d->undo();
+        else
+            emit output(tr("Nothing to undo.\n"));
+    } else if (cmd == "redo" || cmd == "r") {
+        if (args.count())
+            emit output("redo expects no argument.\n");
+        else if (m_d->canRedo())
+            m_d->redo();
+        else
+            emit output(tr("Nothing to redo.\n"));
     } else {
         emit output(tr("Unrecognized command : \"%1\"\n").arg(cmd));
     }

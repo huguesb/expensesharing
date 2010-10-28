@@ -130,6 +130,10 @@ ExpenseSharingUI::ExpenseSharingUI(QWidget *parent)
 ExpenseSharingUI::~ExpenseSharingUI() {
 }
 
+ExpenseSharing* ExpenseSharingUI::expenseSharing() const {
+    return m_d;
+}
+
 void ExpenseSharingUI::urlChanged(const QUrl& url) {
     QSettings s;
     QStringList l = s.value("recentFiles", QStringList()).toStringList();
