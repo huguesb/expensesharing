@@ -76,8 +76,7 @@ refer to valid persons.
 
 TODO
 ----
- * CLI
  * display of p2p debts
  * expense log diff
- * some form of networked / shared edit
+ * some form of shared edit over network (more elaborate than get/put)
  * interface polish
