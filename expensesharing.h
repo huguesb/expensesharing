@@ -91,6 +91,9 @@ protected:
     virtual void setUrl(const QUrl& url);
     virtual NetworkWaiter* createWaiter(QNetworkReply *reply) = 0;
 
+private slots:
+    void cleanChanged(bool clean);
+
 private:
     QUrl m_url;
     QString m_error;

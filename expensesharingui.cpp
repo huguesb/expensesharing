@@ -120,9 +120,13 @@ ExpenseSharingUI::ExpenseSharingUI(QWidget *parent)
     connect(m_d , SIGNAL( urlChanged(const QUrl&) ),
             this, SLOT  ( urlChanged(const QUrl&) ));
 
+    connect(m_d , SIGNAL( modificationChanged(bool) ),
+            this, SLOT  ( setWindowModified(bool) ));
+
     connect(m_d , SIGNAL( summaryChanged() ),
             this, SLOT  ( summaryChanged() ));
 
+    setWindowTitle(tr("ExpenseSharing - Untitled [*]"));
     updateRecentMenu();
     summaryChanged();
 }
@@ -135,6 +139,8 @@ ExpenseSharing* ExpenseSharingUI::expenseSharing() const {
 }
 
 void ExpenseSharingUI::urlChanged(const QUrl& url) {
+    setWindowTitle(tr("ExpenseSharing - %1 [*]").arg(url.toString()));
+
     QSettings s;
     QStringList l = s.value("recentFiles", QStringList()).toStringList();
     int maxEntries = s.value("maxRecentFileEntries", 10).toUInt();

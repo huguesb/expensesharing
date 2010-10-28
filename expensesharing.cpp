@@ -177,6 +177,9 @@ ExpenseSharing::ExpenseSharing(QObject *parent)
     connect(m_group, SIGNAL( summaryChanged() ),
             this   , SIGNAL( summaryChanged() ));
 
+    connect(&m_commands, SIGNAL( cleanChanged(bool) ),
+            this       , SLOT  ( cleanChanged(bool) ));
+
 }
 
 QUrl ExpenseSharing::url() const {
@@ -185,6 +188,7 @@ QUrl ExpenseSharing::url() const {
 
 void ExpenseSharing::setUrl(const QUrl& url) {
     m_url = url;
+    emit urlChanged(url);
 }
 
 const ExpenseGroup* ExpenseSharing::expenseGroup() const {
@@ -197,6 +201,10 @@ QString ExpenseSharing::errorString() const {
 
 bool ExpenseSharing::isModified() const {
     return !m_commands.isClean();
+}
+
+void ExpenseSharing::cleanChanged(bool clean) {
+    emit modificationChanged(!clean);
 }
 
 bool ExpenseSharing::canUndo() {
@@ -246,8 +254,10 @@ bool ExpenseSharing::open(const QUrl& url) {
         if (!ok)
             m_error = tr("Not a valid XSEM file.");
     }
-    if (ok)
+    if (ok) {
+        m_commands.clear();
         setUrl(url);
+    }
     return ok;
 }
 
