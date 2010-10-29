@@ -76,6 +76,7 @@ refer to valid persons.
 
 TODO
 ----
+ * remote improve login
  * display of p2p debts
  * expense log diff
  * some form of shared edit over network (more elaborate than get/put)

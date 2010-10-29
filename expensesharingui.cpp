@@ -36,6 +36,7 @@ class NetworkWaiterUI : public NetworkWaiter {
 public:
     NetworkWaiterUI(QNetworkReply *reply, QWidget *p = 0)
         : NetworkWaiter(reply, p)
+        , m_firstAuth(true)
         , m_dialog(tr("Transferring %1...").arg(reply->url().toString()),
                    tr("Abort transfer"), 0, -1, p) {
         m_dialog.setAutoClose(true);
@@ -60,8 +61,16 @@ public:
     }
 
     void authenticationRequired(QNetworkReply *reply, QAuthenticator *auth) {
-        if (reply != m_reply)
+        // UGLY workaround :
+        // looks like the first auth request is a dummy one...
+        // TODO: figure out a cleaner solution and/or report bug upstream
+        if (m_firstAuth) {
+            auth->setUser(QString());
+            auth->setPassword(QString());
+            m_firstAuth = false;
             return;
+        }
+
         // TODO : proper credential input
         QString usr = QInputDialog::getText(&m_dialog, tr("Auth required"),
                                             tr("Username"));
@@ -82,6 +91,7 @@ public:
     }
 
 private:
+    bool m_firstAuth;
     QProgressDialog m_dialog;
 };
 

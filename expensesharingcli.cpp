@@ -34,11 +34,31 @@
 #include <QTimer>
 #include <QThread>
 
+static QString cli_gets(const char *prompt, bool history = false) {
+    QString s;
+#ifdef USE_READLINE
+    char *raw = readline(prompt);
+    if (history && raw && *raw)
+        add_history(raw);
+    s = QString::fromLocal8Bit(raw);
+    free(raw);
+#else
+    printf("%s", prompt);
+    fflush(stdout);
+    char buffer[CMD_BUFFER_SIZE];
+    char *raw = fgets(buffer, CMD_BUFFER_SIZE, stdin);
+    s = QString::fromLocal8Bit(raw);
+#endif
+    if (s.endsWith("\n"))
+        s.chop(1);
+    return s;
+}
+
 class NetworkWaiterCLI : public NetworkWaiter {
     Q_OBJECT
 public:
     NetworkWaiterCLI(QNetworkReply *reply, QObject *p = 0)
-        : NetworkWaiter(reply, p) {
+        : NetworkWaiter(reply, p), m_firstAuth(true) {
     }
 
     bool wait() {
@@ -55,14 +75,27 @@ public:
     }
 
     void authenticationRequired(QNetworkReply *reply, QAuthenticator *auth) {
-        qDebug("auth required");
-        //NetworkWaiter::authenticationRequired(reply, auth);
-        QString usr = QString::fromLocal8Bit(readline("username: "));
-        QString pwd = QString::fromLocal8Bit(readline("password: "));
-        usr.chop(1);
-        pwd.chop(1);
-        auth->setUser(usr);
-        auth->setPassword(pwd);
+        /*
+        qDebug("auth required : %u %s [%s:%s:%s]",
+               reply->operation(),
+               qPrintable(reply->url().toString()),
+               qPrintable(auth->realm()),
+               qPrintable(auth->user()),
+               qPrintable(auth->password()));
+        */
+
+        // UGLY workaround :
+        // looks like the first auth request is a dummy one...
+        // TODO: figure out a cleaner solution and/or report bug upstream
+        if (m_firstAuth) {
+            auth->setUser(QString());
+            auth->setPassword(QString());
+            m_firstAuth = false;
+            return;
+        }
+
+        auth->setUser(cli_gets("username: "));
+        auth->setPassword(cli_gets("password: "));
     }
 
     void downloadProgress(qint64 received, qint64 total) {
@@ -81,6 +114,7 @@ signals:
     void output(const QString& output);
 
 private:
+    bool m_firstAuth;
 };
 
 static QStringList splitCommandLine(const char *s) {
@@ -135,24 +169,7 @@ public:
     }
 
     QStringList getCommand() {
-        QStringList l;
-#if USE_READLINE
-        char *s = readline("expensesharing> ");
-        if (s && *s)
-            add_history(s);
-        l = splitCommandLine(s);
-        free(s);
-#else
-        printf("expensesharing> ");
-        fflush(stdout);
-        char buffer[CMD_BUFFER_SIZE];
-        char *s = fgets(buffer, CMD_BUFFER_SIZE, stdin);
-        if (feof(stdin)) {
-            ;
-        }
-        l = splitCommandLine(s);
-#endif
-        return l;
+        return splitCommandLine(qPrintable(cli_gets("expensesharing> ", true)));
     }
 
 signals:
