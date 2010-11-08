@@ -46,12 +46,12 @@ public:
     QStringList personNames() const;
     void addPerson(Person *person);
     void removePerson(Person *person);
-    void clearPersons();
+    void clearPersons(bool del = true);
 
     QList<Expense*> expenses() const;
     void addExpense(Expense *expense);
     void removeExpense(Expense *expense);
-    void clearExpenses();
+    void clearExpenses(bool del = true);
 
     const Summary& summary() const;
 

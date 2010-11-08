@@ -75,9 +75,10 @@ void ExpenseGroup::removePerson(Person *person) {
     }
 }
 
-void ExpenseGroup::clearPersons() {
+void ExpenseGroup::clearPersons(bool del) {
     emit personsAboutToBeReset();
-    qDeleteAll(m_persons);
+    if (del)
+        qDeleteAll(m_persons);
     m_persons.clear();
     emit personsReset();
     // TODO: smarter incremental update
@@ -112,9 +113,10 @@ void ExpenseGroup::removeExpense(Expense *expense) {
     }
 }
 
-void ExpenseGroup::clearExpenses() {
+void ExpenseGroup::clearExpenses(bool del) {
     emit expensesAboutToBeReset();
-    qDeleteAll(m_expenses);
+    if (del)
+        qDeleteAll(m_expenses);
     m_expenses.clear();
     emit expensesReset();
     // TODO: smarter incremental update
