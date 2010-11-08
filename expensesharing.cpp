@@ -95,37 +95,50 @@ public:
         TExpense  = 0x8000,
     };
 
-    ExpenseSharingCommand(int cmd, void *param, ExpenseGroup *group)
+    ExpenseSharingCommand(int cmd, QList<void*> param, ExpenseGroup *group)
         : m_command(cmd), m_param(param), m_group(group) {
+        setText(commandString());
+    }
 
-        setText(QString("%1 \"%2\"")
-                    .arg((cmd & CMask) == CAdd ? "Add" : "Remove")
-                    .arg((cmd & TMask) == TExpense
-                         ? static_cast<Expense*>(param)->description()
-                         : static_cast<Person*>(param)->name()));
+    QString commandString() {
+        QString s = (m_command & CMask) == CAdd ? "Add" : "Remove";
+        s += " ";
+        if (m_param.count() == 1) {
+            s += (m_command & TMask) == TExpense ? "expense:" : "person:";
+            s += (m_command & TMask) == TExpense
+                 ? static_cast<Expense*>(m_param.first())->description()
+                 : static_cast<Person*>(m_param.first())->name();
+        } else {
+            s += QString::number(m_param.count());
+            s += " ";
+            s += (m_command & TMask) == TExpense ? "expenses" : "persons";
+        }
+        return s;
     }
 
     virtual void redo() {
         if (m_command & TExpense) {
-            Expense *expense = static_cast<Expense*>(m_param);
             switch (m_command & CMask) {
             case CAdd:
-                m_group->addExpense(expense);
+                foreach (void *e, m_param)
+                    m_group->addExpense(static_cast<Expense*>(e));
                 break;
             case CRemove:
-                m_group->removeExpense(expense);
+                foreach (void *e, m_param)
+                    m_group->removeExpense(static_cast<Expense*>(e));
                 break;
             default:
                 break;
             }
         } else {
-            Person *person = static_cast<Person*>(m_param);
             switch (m_command & CMask) {
             case CAdd:
-                m_group->addPerson(person);
+                foreach (void *p, m_param)
+                    m_group->addPerson(static_cast<Person*>(p));
                 break;
             case CRemove:
-                m_group->removePerson(person);
+                foreach (void *p, m_param)
+                    m_group->removePerson(static_cast<Person*>(p));
                 break;
             default:
                 break;
@@ -135,25 +148,27 @@ public:
 
     virtual void undo() {
         if (m_command & TExpense) {
-            Expense *expense = static_cast<Expense*>(m_param);
             switch (m_command & CMask) {
             case CAdd:
-                m_group->removeExpense(expense);
+                foreach (void *e, m_param)
+                    m_group->removeExpense(static_cast<Expense*>(e));
                 break;
             case CRemove:
-                m_group->addExpense(expense);
+                foreach (void *e, m_param)
+                    m_group->addExpense(static_cast<Expense*>(e));
                 break;
             default:
                 break;
             }
         } else {
-            Person *person = static_cast<Person*>(m_param);
             switch (m_command & CMask) {
             case CAdd:
-                m_group->removePerson(person);
+                foreach (void *p, m_param)
+                    m_group->removePerson(static_cast<Person*>(p));
                 break;
             case CRemove:
-                m_group->addPerson(person);
+                foreach (void *p, m_param)
+                    m_group->addPerson(static_cast<Person*>(p));
                 break;
             default:
                 break;
@@ -163,7 +178,7 @@ public:
 
 private:
     int m_command;
-    void *m_param;
+    QList<void*> m_param;
     ExpenseGroup *m_group;
 };
 
@@ -308,7 +323,7 @@ void ExpenseSharing::addPerson(Person *person) {
     m_commands.push(
         new ExpenseSharingCommand(
                 ExpenseSharingCommand::CAdd | ExpenseSharingCommand::TPerson,
-                person,
+                QList<void*>() << person,
                 m_group));
 }
 
@@ -316,7 +331,18 @@ void ExpenseSharing::removePerson(Person *person) {
     m_commands.push(
         new ExpenseSharingCommand(
                 ExpenseSharingCommand::CRemove | ExpenseSharingCommand::TPerson,
-                person,
+                QList<void*>() << person,
+                m_group));
+}
+
+void ExpenseSharing::clearPersons() {
+    QList<void*> l;
+    foreach (Person *p, m_group->persons())
+        l << p;
+    m_commands.push(
+        new ExpenseSharingCommand(
+                ExpenseSharingCommand::CRemove | ExpenseSharingCommand::TPerson,
+                l,
                 m_group));
 }
 
@@ -324,7 +350,7 @@ void ExpenseSharing::addExpense(Expense *expense) {
     m_commands.push(
         new ExpenseSharingCommand(
                 ExpenseSharingCommand::CAdd | ExpenseSharingCommand::TExpense,
-                expense,
+                QList<void*>() << expense,
                 m_group));
 }
 
@@ -332,7 +358,18 @@ void ExpenseSharing::removeExpense(Expense *expense) {
     m_commands.push(
         new ExpenseSharingCommand(
                 ExpenseSharingCommand::CRemove | ExpenseSharingCommand::TExpense,
-                expense,
+                QList<void*>() << expense,
+                m_group));
+}
+
+void ExpenseSharing::clearExpenses() {
+    QList<void*> l;
+    foreach (Expense *e, m_group->expenses())
+        l << e;
+    m_commands.push(
+        new ExpenseSharingCommand(
+                ExpenseSharingCommand::CRemove | ExpenseSharingCommand::TExpense,
+                l,
                 m_group));
 }
 

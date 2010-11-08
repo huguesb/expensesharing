@@ -80,9 +80,11 @@ public slots:
 
     void addPerson(Person *person);
     void removePerson(Person *person);
+    void clearPersons();
 
     void addExpense(Expense *expense);
     void removeExpense(Expense *expense);
+    void clearExpenses();
 
     void undo();
     void redo();
