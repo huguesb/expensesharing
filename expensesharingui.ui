@@ -107,6 +107,8 @@
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="separator"/>
+    <addaction name="actionClose"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
@@ -121,7 +123,10 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <addaction name="actionAdd"/>
+    <addaction name="actionAddPerson"/>
+    <addaction name="actionAddExpense"/>
+    <addaction name="separator"/>
+    <addaction name="actionClearExpenses"/>
     <addaction name="separator"/>
    </widget>
    <addaction name="menu_File"/>
@@ -141,16 +146,25 @@
    <addaction name="actionSave"/>
    <addaction name="actionSaveAs"/>
    <addaction name="separator"/>
-   <addaction name="actionAdd"/>
+   <addaction name="actionClose"/>
+   <addaction name="separator"/>
+   <addaction name="actionAddPerson"/>
+   <addaction name="actionAddExpense"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
     <string>&amp;Open...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionSave">
    <property name="text">
     <string>&amp;Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionSaveAs">
@@ -162,10 +176,16 @@
    <property name="text">
     <string>&amp;Quit</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
   </action>
-  <action name="actionAdd">
+  <action name="actionAddExpense">
    <property name="text">
     <string>&amp;Add expense...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
    </property>
   </action>
   <action name="actionHelp">
@@ -186,6 +206,30 @@
   <action name="actionOpenUrl">
    <property name="text">
     <string>Open url...</string>
+   </property>
+  </action>
+  <action name="actionClose">
+   <property name="text">
+    <string>&amp;Close</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionClearExpenses">
+   <property name="text">
+    <string>&amp;Clear expenses</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionAddPerson">
+   <property name="text">
+    <string>Add &amp;person...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>

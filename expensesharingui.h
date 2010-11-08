@@ -43,7 +43,10 @@ private slots:
     void on_actionClearRecent_triggered();
     void on_actionSave_triggered();
     void on_actionSaveAs_triggered();
-    void on_actionAdd_triggered();
+    void on_actionClose_triggered();
+    void on_actionAddPerson_triggered();
+    void on_actionAddExpense_triggered();
+    void on_actionClearExpenses_triggered();
     void on_actionHelp_triggered();
     void on_actionAbout_triggered();
 

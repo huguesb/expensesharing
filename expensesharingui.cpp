@@ -149,17 +149,20 @@ ExpenseSharing* ExpenseSharingUI::expenseSharing() const {
 }
 
 void ExpenseSharingUI::urlChanged(const QUrl& url) {
-    setWindowTitle(tr("ExpenseSharing - %1 [*]").arg(url.toString()));
+    setWindowTitle(tr("ExpenseSharing - %1 [*]")
+                   .arg(url.isValid() ? url.toString() : "Untitled"));
 
-    QSettings s;
-    QStringList l = s.value("recentFiles", QStringList()).toStringList();
-    int maxEntries = s.value("maxRecentFileEntries", 10).toUInt();
-    l.removeAll(url.toString());
-    l.prepend(url.toString());
-    while (l.count() > maxEntries)
-        l.removeLast();
-    s.setValue("recentFiles", l);
-    updateRecentMenu();
+    if (url.isValid()) {
+        QSettings s;
+        QStringList l = s.value("recentFiles", QStringList()).toStringList();
+        int maxEntries = s.value("maxRecentFileEntries", 10).toUInt();
+        l.removeAll(url.toString());
+        l.prepend(url.toString());
+        while (l.count() > maxEntries)
+            l.removeLast();
+        s.setValue("recentFiles", l);
+        updateRecentMenu();
+    }
 }
 
 void ExpenseSharingUI::updateRecentMenu() {
@@ -235,10 +238,24 @@ void ExpenseSharingUI::on_actionSaveAs_triggered() {
         m_d->saveAs(fn);
 }
 
-void ExpenseSharingUI::on_actionAdd_triggered() {
+void ExpenseSharingUI::on_actionClose_triggered() {
+    m_d->close();
+}
+
+void ExpenseSharingUI::on_actionAddPerson_triggered() {
+    Person *p = NewPersonDialog::getPerson(this);
+    if (p)
+        m_d->addPerson(p);
+}
+
+void ExpenseSharingUI::on_actionAddExpense_triggered() {
     Expense *e = NewExpenseDialog::getExpense(m_d->expenseGroup()->persons(), this);
     if (e)
         m_d->addExpense(e);
+}
+
+void ExpenseSharingUI::on_actionClearExpenses_triggered() {
+    m_d->clearExpenses();
 }
 
 void ExpenseSharingUI::on_actionHelp_triggered() {
@@ -284,9 +301,7 @@ void ExpenseSharingUI::on_lvPersons_customContextMenuRequested(const QPoint& pos
 
     QAction *a = m.exec(lvPersons->mapToGlobal(pos));
     if (a == add) {
-        Person *p = NewPersonDialog::getPerson(this);
-        if (p)
-            m_d->addPerson(p);
+        on_actionAddPerson_triggered();
     } else if (a == rem) {
         m_d->removePerson(m_d->expenseGroup()->persons().at(idx.row()));
     }
@@ -302,7 +317,7 @@ void ExpenseSharingUI::on_tvExpenseDetails_customContextMenuRequested(const QPoi
 
     QAction *a = m.exec(tvExpenseDetails->mapToGlobal(pos));
     if (a == add) {
-        on_actionAdd_triggered();
+        on_actionAddExpense_triggered();
     } else if (a == rem) {
         m_d->removeExpense(m_d->expenseGroup()->expenses().at(idx.row()));
     }
