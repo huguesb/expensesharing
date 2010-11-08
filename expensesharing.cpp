@@ -96,8 +96,21 @@ public:
     };
 
     ExpenseSharingCommand(int cmd, QList<void*> param, ExpenseGroup *group)
-        : m_command(cmd), m_param(param), m_group(group) {
+        : m_done(false), m_command(cmd), m_param(param), m_group(group) {
         setText(commandString());
+    }
+
+    ~ExpenseSharingCommand() {
+        if ((m_done && ((m_command & CMask) == CRemove))
+            || (!m_done && ((m_command & CMask) == CAdd))) {
+            if ((m_command & TMask) == TExpense) {
+                foreach (void *e, m_param)
+                    delete static_cast<Expense*>(e);
+            } else {
+                foreach (void *p, m_param)
+                    delete static_cast<Person*>(p);
+            }
+        }
     }
 
     QString commandString() {
@@ -117,6 +130,7 @@ public:
     }
 
     virtual void redo() {
+        m_done = true;
         if (m_command & TExpense) {
             switch (m_command & CMask) {
             case CAdd:
@@ -147,6 +161,7 @@ public:
     }
 
     virtual void undo() {
+        m_done = false;
         if (m_command & TExpense) {
             switch (m_command & CMask) {
             case CAdd:
@@ -177,6 +192,7 @@ public:
     }
 
 private:
+    bool m_done;
     int m_command;
     QList<void*> m_param;
     ExpenseGroup *m_group;
@@ -317,6 +333,15 @@ bool ExpenseSharing::saveAs(const QUrl& url) {
 
 bool ExpenseSharing::saveAs(const QString& filename) {
     return filename.count() ? saveAs(QUrl::fromLocalFile(filename)) : false;
+}
+
+void ExpenseSharing::close() {
+    m_group->clearExpenses();
+    m_group->clearPersons();
+    m_commands.clear();
+    setUrl(QUrl());
+    emit summaryChanged();
+    emit modificationChanged(false);
 }
 
 void ExpenseSharing::addPerson(Person *person) {

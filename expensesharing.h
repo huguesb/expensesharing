@@ -78,6 +78,8 @@ public slots:
     virtual bool saveAs(const QUrl& url);
     virtual bool saveAs(const QString& filename);
 
+    virtual void close();
+
     void addPerson(Person *person);
     void removePerson(Person *person);
     void clearPersons();
